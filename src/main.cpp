@@ -2,29 +2,29 @@
 #include "esp_sleep.h"
 
 #define us_TO_S_FACTOR 1000000ULL
+#define TIME_TO_SLEEP_SEC 10
 void setup()
 {
   Serial.begin(115200);
   delay(1000);
-  Serial.println("\n=== Day 1: Light Sleep Test ===");
+  Serial.println("\n=== Day 2: Deep Sleep & Timer Wakeup ===");
+  esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+  if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER)
+  {
+    Serial.println("[Success] Woken up by Timer!(Cold Boot-system restarted from setup)");
+  }else{
+    Serial.println("System started normally(Power-on Reset/EN button)");
+  }
+  
+  Serial.printf("Preparing to enter Deep Sleep for %d seconds...\n",TIME_TO_SLEEP_SEC);
+  Serial.println("Chip will power down almost entirely.Current drops to micro-amps");
+  Serial.flush();
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP_SEC*us_TO_S_FACTOR);
+  esp_deep_sleep_start();
+  Serial.println("This will never print.");
 }
 
 void loop()
 {
-  Serial.println("System is running normal active tasks...");
-  delay(1000);
-
-  Serial.println("Entering Light Sleep for 5 seconds...(Peripherals & retained)");
-  Serial.flush();  //Ensure UART buffer is empty before sleeping
-
-  //Configure Timer for Light Sleep
-  esp_sleep_enable_timer_wakeup(5*us_TO_S_FACTOR);
-  //Start Light sleep.CPU pauses,but RAM is kept alive
-  esp_light_sleep_start();
-
-  //[Verification] if it is a Warm Boot,execution continues right here
-  Serial.println("Woken up from Light Sleep! (Warm Boot Success)");
-  Serial.println("Notice that setup() was NOT caller again.\n");
-
-  delay(2000);
+  //Empty loop
 }
