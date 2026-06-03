@@ -1,27 +1,31 @@
 #include <Arduino.h>
 #include "esp_sleep.h"
 
-#define us_TO_S_FACTOR 1000000ULL
-#define TIME_TO_SLEEP_SEC 10
+#define BUTTON_PIN GPIO_NUM_0
 void setup()
 {
   Serial.begin(115200);
   delay(1000);
-  Serial.println("\n=== Day 2: Deep Sleep & Timer Wakeup ===");
+  Serial.println("\n=== Day 3: External Ext0 Wakeup ===");
+
+  //Check if woken up by external button
   esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
-  if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER)
+  if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0)
   {
-    Serial.println("[Success] Woken up by Timer!(Cold Boot-system restarted from setup)");
+    Serial.println("[Success] Instant recovery!Wake up by Physical Button(GPIO 0)");
   }else{
-    Serial.println("System started normally(Power-on Reset/EN button)");
+    Serial.println("Normal system boot up");
   }
   
-  Serial.printf("Preparing to enter Deep Sleep for %d seconds...\n",TIME_TO_SLEEP_SEC);
-  Serial.println("Chip will power down almost entirely.Current drops to micro-amps");
+  Serial.println("Configuring Ext0 Wakeup on GPIO 0...");
+  //Enable Ext0 Wakeup.
+  esp_sleep_enable_ext0_wakeup(BUTTON_PIN,0);
+
+  Serial.println("Entering Deep Sleep now.press the BOOT button to wake me up");
   Serial.flush();
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP_SEC*us_TO_S_FACTOR);
+
+  //Enter Deep Sleep
   esp_deep_sleep_start();
-  Serial.println("This will never print.");
 }
 
 void loop()
