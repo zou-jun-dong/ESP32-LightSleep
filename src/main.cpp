@@ -1,34 +1,34 @@
 #include <Arduino.h>
 #include "esp_sleep.h"
 
-#define BUTTON_PIN GPIO_NUM_0
+#define us_TO_S_FACTOR 1000000ULL
+
+RTC_DATA_ATTR int bootCount = 0;  //Declare variable in RTC Fast Memory using RTC_DATA_ATTR
+
+int normalCount = 0;  //This ordinary variable will be RESET to 0 every time we wake up
+
 void setup()
 {
   Serial.begin(115200);
   delay(1000);
-  Serial.println("\n=== Day 3: External Ext0 Wakeup ===");
-
-  //Check if woken up by external button
-  esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
-  if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0)
-  {
-    Serial.println("[Success] Instant recovery!Wake up by Physical Button(GPIO 0)");
-  }else{
-    Serial.println("Normal system boot up");
-  }
+  Serial.println("\n=== Day 4: RTC Memory Retention ===");
   
-  Serial.println("Configuring Ext0 Wakeup on GPIO 0...");
-  //Enable Ext0 Wakeup.
-  esp_sleep_enable_ext0_wakeup(BUTTON_PIN,0);
+  bootCount++;
+  normalCount++;
 
-  Serial.println("Entering Deep Sleep now.press the BOOT button to wake me up");
+  //Printf values to verify
+  Serial.printf("RTC Variable(bootCount) = %d <--Preserved!\n",bootCount);
+  Serial.printf("Normal Variable(normalCount) = %d <--Preserved!\n",normalCount);
+
+  Serial.println("Sleeping for 5 seconds...");
   Serial.flush();
 
-  //Enter Deep Sleep
+  //Wake uo in 5 seconds to check again
+  esp_sleep_enable_timer_wakeup(5*us_TO_S_FACTOR);
   esp_deep_sleep_start();
 }
 
 void loop()
 {
-  //Empty loop
+  //Empty
 }
